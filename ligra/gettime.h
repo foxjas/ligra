@@ -107,6 +107,8 @@ struct timer {
 static timer _tm;
 #define timeStatement(_A,_string) _tm.start();  _A; _tm.reportNext(_string);
 #define startTime() _tm.start();
+#define stopT() _tm.stop();
+#define totalTime() _tm.total();
 #define stopTime(_weight,_str) _tm.reportStop(_weight,_str);
 #define reportTime(_str) _tm.reportTotal(_str);
 #define nextTime(_string) _tm.reportNext(_string);

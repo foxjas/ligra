@@ -183,6 +183,7 @@ int parallel_main(int argc, char* argv[]) {
   bool compressed = P.getOptionValue("-c");
   bool binary = P.getOptionValue("-b");
   long rounds = P.getOptionLongValue("-rounds",3);
+  double avgTime;
   if (compressed) {
     if (symmetric) {
       graph<compressedSymmetricVertex> G =
@@ -215,8 +216,11 @@ int parallel_main(int argc, char* argv[]) {
       for(int r=0;r<rounds;r++) {
         startTime();
         Compute(G,P);
-        nextTime("Running time");
+        stopT();
       }
+      avgTime = totalTime();
+      avgTime /= rounds;
+      std::cout << "Average time over " << rounds << " rounds: " << avgTime << std::endl;
       G.del();
     } else {
       graph<asymmetricVertex> G =
@@ -226,9 +230,12 @@ int parallel_main(int argc, char* argv[]) {
       for(int r=0;r<rounds;r++) {
         startTime();
         Compute(G,P);
-        nextTime("Running time");
+        stopT();
         if(G.transposed) G.transpose();
       }
+      avgTime = totalTime();
+      avgTime /= rounds;
+      std::cout << "Average time over " << rounds << " rounds: " << avgTime << std::endl;
       G.del();
     }
   }
