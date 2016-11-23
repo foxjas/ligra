@@ -29,6 +29,7 @@
 #include <cstring>
 #include <string>
 #include <algorithm>
+#include <math.h>
 #include "parallel.h"
 #include "gettime.h"
 #include "utils.h"
@@ -184,6 +185,10 @@ int parallel_main(int argc, char* argv[]) {
   bool binary = P.getOptionValue("-b");
   long rounds = P.getOptionLongValue("-rounds",3);
   double avgTime;
+  double totalTime;
+  double variance;
+  double totalTime2 = 0;
+  double tDelta;
   if (compressed) {
     if (symmetric) {
       graph<compressedSymmetricVertex> G =
@@ -216,11 +221,14 @@ int parallel_main(int argc, char* argv[]) {
       for(int r=0;r<rounds;r++) {
         startTime();
         Compute(G,P);
-        stopT();
+        tDelta = stopT();
+        totalTime2 += tDelta*tDelta;
       }
-      avgTime = totalTime();
-      avgTime /= rounds;
+      totalTime = totalTime();
+      avgTime = totalTime/rounds;
+      variance = totalTime2/rounds - (totalTime*totalTime)/(rounds*rounds);
       std::cout << "Average time over " << rounds << " rounds: " << avgTime << std::endl;
+      std::cout << "Standard deviation: " << sqrt(variance) << std::endl;
       G.del();
     } else {
       graph<asymmetricVertex> G =
@@ -230,12 +238,14 @@ int parallel_main(int argc, char* argv[]) {
       for(int r=0;r<rounds;r++) {
         startTime();
         Compute(G,P);
-        stopT();
-        if(G.transposed) G.transpose();
+        tDelta = stopT();
+        totalTime2 += tDelta*tDelta;
       }
-      avgTime = totalTime();
-      avgTime /= rounds;
+      totalTime = totalTime();
+      avgTime = totalTime/rounds;
+      variance = totalTime2/rounds - (totalTime*totalTime)/(rounds*rounds);
       std::cout << "Average time over " << rounds << " rounds: " << avgTime << std::endl;
+      std::cout << "Standard deviation: " << sqrt(variance) << std::endl;
       G.del();
     }
   }
