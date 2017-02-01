@@ -30,6 +30,7 @@
 #include <string>
 #include <algorithm>
 #include <math.h>
+#include <vector>
 #include "parallel.h"
 #include "gettime.h"
 #include "utils.h"
@@ -183,12 +184,25 @@ int parallel_main(int argc, char* argv[]) {
   bool symmetric = P.getOptionValue("-s");
   bool compressed = P.getOptionValue("-c");
   bool binary = P.getOptionValue("-b");
-  long rounds = P.getOptionLongValue("-rounds",3);
+  bool verbose = P.getOptionValue("-v");
+  long rounds = P.getOptionLongValue("-rounds",1);
+  printf("Rounds: %ld\n", rounds);
   double avgTime;
   double totalTime;
-  double variance;
-  double totalTime2 = 0;
   double tDelta;
+  vector<double> avgTimeBySrc;
+  vector<long> srcList = P.getOptionLongVector("--R");
+  if (!srcList.size()) {
+    srcList.push_back(P.getOptionLongValue("-r", 0));
+  }
+  if (verbose) {
+      printf("Sources:");
+      for (vector<long>::const_iterator it = srcList.begin(); it != srcList.end(); it++) {
+        printf(" %ld", *it);
+      }
+      printf("\n");
+  }
+
   if (compressed) {
     if (symmetric) {
       graph<compressedSymmetricVertex> G =
@@ -218,34 +232,51 @@ int parallel_main(int argc, char* argv[]) {
       graph<symmetricVertex> G =
         readGraph<symmetricVertex>(iFile,compressed,symmetric,binary); //symmetric graph
       Compute(G,P);
-      for(int r=0;r<rounds;r++) {
-        startTime();
-        Compute(G,P);
-        tDelta = stopT();
-        totalTime2 += tDelta*tDelta;
+      for (vector<long>::const_iterator it = srcList.begin(); it != srcList.end(); it++) {
+        P.setOptionValue("-r", to_string(*it));
+        tDelta = 0;
+        for(int r=0;r<rounds;r++) {
+          startTime();
+          Compute(G,P);
+          tDelta += stopT();
+        }
+        avgTimeBySrc.push_back(tDelta/rounds);
       }
       totalTime = totalTime();
-      avgTime = totalTime/rounds;
-      variance = totalTime2/rounds - (totalTime*totalTime)/(rounds*rounds);
-      std::cout << "Average time over " << rounds << " rounds: " << avgTime << std::endl;
-      std::cout << "Standard deviation: " << sqrt(variance) << std::endl;
+      avgTime = totalTime/(rounds*srcList.size());
+      std::cout << "Average time: " << avgTime << std::endl;
+      if (verbose) {
+        std::cout << "Average time by source:";
+        for (vector<double>::const_iterator it = avgTimeBySrc.begin(); it != avgTimeBySrc.end(); it++) {
+          std::cout << " " << *it;
+        }
+        std::cout << std::endl;
+      }
       G.del();
     } else {
       graph<asymmetricVertex> G =
         readGraph<asymmetricVertex>(iFile,compressed,symmetric,binary); //asymmetric graph
       Compute(G,P);
-      if(G.transposed) G.transpose();
-      for(int r=0;r<rounds;r++) {
-        startTime();
-        Compute(G,P);
-        tDelta = stopT();
-        totalTime2 += tDelta*tDelta;
+      for (vector<long>::const_iterator it = srcList.begin(); it != srcList.end(); it++) {
+        P.setOptionValue("-r", to_string(*it));
+        tDelta = 0;
+        for(int r=0;r<rounds;r++) {
+          startTime();
+          Compute(G,P);
+          tDelta += stopT();
+        }
+        avgTimeBySrc.push_back(tDelta/rounds);
       }
       totalTime = totalTime();
-      avgTime = totalTime/rounds;
-      variance = totalTime2/rounds - (totalTime*totalTime)/(rounds*rounds);
-      std::cout << "Average time over " << rounds << " rounds: " << avgTime << std::endl;
-      std::cout << "Standard deviation: " << sqrt(variance) << std::endl;
+      avgTime = totalTime/(rounds*srcList.size());
+      std::cout << "Average time: " << avgTime << std::endl;
+      if (verbose) {
+        std::cout << "Average time by source:";
+        for (vector<double>::const_iterator it = avgTimeBySrc.begin(); it != avgTimeBySrc.end(); it++) {
+          std::cout << " " << *it;
+        }
+        std::cout << std::endl;
+      }
       G.del();
     }
   }

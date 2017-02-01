@@ -29,11 +29,15 @@ PCC = icpc
 PCFLAGS = -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
 
 else ifdef OPENMP
-PCC = icc
+PCC = g++-6
+PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
+
+else ifdef OPENMPG
+PCC = g++-6
 PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
 else
-PCC = icc
+PCC = icpc
 PCFLAGS = -O3 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 

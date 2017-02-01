@@ -28,6 +28,7 @@
 #include <string>
 #include <cstring>
 #include <stdlib.h>
+#include <vector>
 using namespace std;
 
 struct commandLine {
@@ -75,6 +76,13 @@ struct commandLine {
     return NULL;
   }
 
+  void setOptionValue(string option, string value) {
+    for (int i = 1; i < argc-1; i++) {
+      if ((string) argv[i] == option)
+        argv[i+1] = (char *)value.c_str();
+    }
+  }
+
   string getOptionValue(string option, string defaultValue) {
     for (int i = 1; i < argc-1; i++)
       if ((string) argv[i] == option) return (string) argv[i+1];
@@ -88,6 +96,32 @@ struct commandLine {
 	return r;
       }
     return defaultValue;
+  }
+
+  vector<long> getOptionLongVector(string option) {
+    char *r = NULL;
+    for (int i = 1; i < argc-1; i++) {
+      if ((string) argv[i] == option) {
+        r = argv[i+1];
+        break;
+      }
+    }
+    if (r == NULL) return vector<long>();
+    vector<long> arr;
+    long val;
+    int n;
+    char* tok = r;
+    n = sscanf(tok, "%ld", &val);
+    if (!n) return vector<long>();
+    while (n) {
+      arr.push_back(val);
+      tok = strchr(tok, ',' );
+      if (tok == NULL)
+        break;
+      tok += 1;
+      n = sscanf(tok, "%ld", &val);
+    }
+    return arr;
   }
 
   long getOptionLongValue(string option, long defaultValue) {
