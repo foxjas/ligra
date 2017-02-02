@@ -41,20 +41,20 @@ int parallel_main(int argc, char* argv[]) {
   
   intT* Weights = newA(intT,m);
 
-  intT maxEdgeLen = log2(n);
-  intT* Choices = newA(intT,2*maxEdgeLen);
+  // intT maxEdgeLen = log2(n);
+  // intT* Choices = newA(intT,2*maxEdgeLen);
   
-  parallel_for (intT i=0;i<maxEdgeLen;i++){
-    Choices[2*i] = i+1;
-    Choices[2*i+1] = i+1;
-    //Choices[2*i+1] = -(i/10)-1;
-  }
+  // parallel_for (intT i=0;i<maxEdgeLen;i++){
+  //   Choices[2*i] = i+1;
+  //   Choices[2*i+1] = i+1;
+  //   //Choices[2*i+1] = -(i/10)-1;
+  // }
 
   parallel_for (long i=0;i<m;i++) {
-    Weights[i] = Choices[hashInt((uintT)i) % (2*maxEdgeLen)];
+    Weights[i] = 1;
     //if(i%1000==0 && Weights[i] < 0) Weights[i]*=-1;
   }
-  free(Choices);
+  // free(Choices);
   
   wghVertex<intT>* WV = newA(wghVertex<intT>,n);
   intT* Neighbors_start = G.allocatedInplace+2+n;
