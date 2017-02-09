@@ -257,6 +257,7 @@ int parallel_main(int argc, char* argv[]) {
       graph<asymmetricVertex> G =
         readGraph<asymmetricVertex>(iFile,compressed,symmetric,binary); //asymmetric graph
       Compute(G,P);
+      if(G.transposed) G.transpose();
       for (vector<long>::const_iterator it = srcList.begin(); it != srcList.end(); it++) {
         P.setOptionValue("-r", to_string(*it));
         tDelta = 0;
@@ -264,6 +265,7 @@ int parallel_main(int argc, char* argv[]) {
           startTime();
           Compute(G,P);
           tDelta += stopT();
+          if(G.transposed) G.transpose();
         }
         avgTimeBySrc.push_back(tDelta/rounds);
       }
