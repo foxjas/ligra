@@ -6,6 +6,8 @@ ifdef EDGELONG
 INTE = -DEDGELONG
 endif
 
+OPENMP= # don't allow multithreading; buggy
+
 #compilers
 ifdef CILK
 PCC = g++

@@ -18,6 +18,8 @@ else
 CODE = -DBYTERLE
 endif
 
+OPENMP=True		# use openmp
+
 #compilers
 ifdef CILK
 PCC = g++
@@ -29,15 +31,15 @@ PCC = icpc
 PCFLAGS = -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
 
 else ifdef OPENMP
-PCC = g++-6
-PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
+PCC = g++
+PCFLAGS = -fopenmp -std=c++0x -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
 else ifdef OPENMPG
-PCC = g++-6
+PCC = g++
 PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
 else
-PCC = icpc
+PCC = g++
 PCFLAGS = -O3 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 
