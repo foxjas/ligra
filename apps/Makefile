@@ -21,7 +21,11 @@ endif
 OPENMP=True
 
 #compilers
-ifdef CILK
+ifdef OPENMP
+PCC = icpc
+PCFLAGS = -qopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
+
+else ifdef CILK
 PCC = g++
 PCFLAGS = -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE) $(CODE) $(PD)
 PLFLAGS = -fcilkplus -lcilkrts
@@ -30,9 +34,6 @@ else ifdef MKLROOT
 PCC = icpc
 PCFLAGS = -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
 
-else ifdef OPENMP
-PCC = icpc
-PCFLAGS = -qopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
 else
 PCC = g++
