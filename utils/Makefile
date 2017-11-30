@@ -16,9 +16,9 @@ else ifdef MKLROOT
 PCC = icpc
 PCFLAGS = -O3 -DCILKP $(INTT) $(INTE)
 
-else ifdef OPENMP
-PCC = g++
-PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE)
+#else ifdef OPENMP
+#PCC = g++
+#PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE)
 
 else
 PCC = g++
