@@ -41,7 +41,16 @@
 #include "IO.h"
 #include "parseCommandLine.h"
 #include "gettime.h"
+
+#include "papi.h"
+#include <omp.h>
 using namespace std;
+
+typedef struct{
+  int num;
+  int *events;
+  long long int *counters;
+}papi_t;
 
 //*****START FRAMEWORK*****
 
@@ -170,27 +179,59 @@ vertexSubset vertexFilter(vertexSubset V, F filter) {
   {parallel_for(long i=0;i<n;i++)
       if(V.d[i]) d_out[i] = filter(i);}
   return vertexSubset(n,d_out);
-}
+    }
 
-//cond function that always returns true
-inline bool cond_true (intT d) { return 1; }
+    //cond function that always returns true
+    inline bool cond_true (intT d) { return 1; }
 
-template<class vertex>
-void Compute(graph<vertex>&, commandLine);
+    template<class vertex>
+    void Compute(graph<vertex>&, commandLine);
 
-int parallel_main(int argc, char* argv[]) {
-  commandLine P(argc,argv," [-s] <inFile>");
-  char* iFile = P.getArgument(0);
-  bool symmetric = P.getOptionValue("-s");
-  bool compressed = P.getOptionValue("-c");
-  bool binary = P.getOptionValue("-b");
-  bool verbose = P.getOptionValue("-v");
-  long rounds = P.getOptionLongValue("-rounds",1);
-  printf("Rounds: %ld\n", rounds);
-  double avgTime;
-  double totalTime;
-  double tDelta;
-  vector<double> avgTimeBySrc;
+    int parallel_main(int argc, char* argv[]) {
+    commandLine P(argc,argv," [-s] <inFile>");
+    char* iFile = P.getArgument(0);
+    bool symmetric = P.getOptionValue("-s");
+    bool compressed = P.getOptionValue("-c");
+    bool binary = P.getOptionValue("-b");
+    bool verbose = P.getOptionValue("-v");
+    long rounds = P.getOptionLongValue("-rounds",1);
+    printf("Rounds: %ld\n", rounds);
+    double avgTime;
+    double totalTime;
+    double tDelta;
+    vector<double> avgTimeBySrc;
+    
+    papi_t papi;
+    const int num_events = 2;
+    int events[num_events] = {PAPI_TLB_DM, PAPI_L2_TCM};
+    //const int num_events = 4;
+    //int events[num_events] = {PAPI_LD_INS, PAPI_SR_INS, PAPI_BR_INS, PAPI_TOT_INS}; 
+    long long int counters[num_events] = {0};
+    papi.num = num_events;
+    papi.events = events;
+    papi.counters = counters;
+    //papi_struct_set(papi, num_events, events, counters);
+    int retval;
+    #ifdef PERF
+    retval = PAPI_library_init(PAPI_VER_CURRENT);
+    if (retval != PAPI_VER_CURRENT) {
+        fprintf(stderr,"PAPI library init error!\\n");
+        exit(1); 
+    }
+    for (int i=0; i<num_events; i++) {
+       retval = PAPI_query_event(papi.events[i]);
+       if (retval != PAPI_OK) {
+           fprintf(stderr, "Counter listed at %d is not available; exitting\n", i);
+           exit(1);
+       }
+    }
+    #endif
+    /*
+    if (PAPI_thread_init((unsigned long (*)())omp_get_thread_num) != PAPI_OK){
+        fprintf(stderr, "PAPI thread init failed\n");
+        exit(1);
+    }   
+    */
   vector<long> srcList = P.getOptionLongVector("--R");
   if (!srcList.size()) {
     srcList.push_back(P.getOptionLongValue("-r", 0));
@@ -232,17 +273,33 @@ int parallel_main(int argc, char* argv[]) {
       graph<symmetricVertex> G =
         readGraph<symmetricVertex>(iFile,compressed,symmetric,binary); //symmetric graph
       Compute(G,P);
+      int code;
       for (vector<long>::const_iterator it = srcList.begin(); it != srcList.end(); it++) {
         P.setOptionValue("-r", to_string(*it));
         tDelta = 0;
         for(int r=0;r<rounds;r++) {
           startTime();
+
+          #ifdef PERF
+          PAPI_start_counters(papi.events, papi.num);
+          #endif
           Compute(G,P);
+          //PAPI_strerror(code);
+
+          #ifdef PERF
+          code = PAPI_accum_counters(papi.counters, papi.num);
+          #endif
           tDelta += stopT();
         }
         avgTimeBySrc.push_back(tDelta/rounds);
       }
       totalTime = totalTime();
+      #ifdef PERF
+      printf("PAPI_read_counters exit code: %d\n", code);
+      for (int i=0; i<papi.num; i++) {
+        printf("Counter %d=%lld\n", i, (papi.counters[i]/rounds));
+      }
+      #endif
       avgTime = totalTime/(rounds*srcList.size());
       std::cout << "Average time: " << avgTime << std::endl;
       if (verbose) {
@@ -258,18 +315,33 @@ int parallel_main(int argc, char* argv[]) {
         readGraph<asymmetricVertex>(iFile,compressed,symmetric,binary); //asymmetric graph
       Compute(G,P);
       if(G.transposed) G.transpose();
+      int code;
       for (vector<long>::const_iterator it = srcList.begin(); it != srcList.end(); it++) {
         P.setOptionValue("-r", to_string(*it));
         tDelta = 0;
         for(int r=0;r<rounds;r++) {
           startTime();
+
+          #ifdef PERF
+          PAPI_start_counters(papi.events, papi.num);
+          #endif
           Compute(G,P);
+          //PAPI_strerror(code);
+
+          #ifdef PERF
+          code = PAPI_accum_counters(papi.counters, papi.num);
+          #endif
           tDelta += stopT();
-          if(G.transposed) G.transpose();
         }
         avgTimeBySrc.push_back(tDelta/rounds);
       }
       totalTime = totalTime();
+      #ifdef PERF
+      printf("PAPI_read_counters exit code: %d\n", code);
+      for (int i=0; i<papi.num; i++) {
+        printf("Counter %d=%lld\n", i, (papi.counters[i]/rounds));
+      }
+      #endif
       avgTime = totalTime/(rounds*srcList.size());
       std::cout << "Average time: " << avgTime << std::endl;
       if (verbose) {
@@ -279,6 +351,7 @@ int parallel_main(int argc, char* argv[]) {
         }
         std::cout << std::endl;
       }
+      //print_stats(papi, time_ms);
       G.del();
     }
   }

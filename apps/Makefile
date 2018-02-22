@@ -18,7 +18,9 @@ else
 CODE = -DBYTERLE
 endif
 
-OPENMP=True		# use openmp
+OPENMP=True # use openmp
+MKLROOT=
+CILK=
 
 #compilers
 ifdef CILK
@@ -28,11 +30,12 @@ PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
 PCC = icpc
-PCFLAGS = -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
+PCFLAGS = -O3 -qopenmp $(INTT) $(INTE) $(CODE) $(PD) -L/usr/local/lib -lpapi -I/usr/local/include
+
 
 else ifdef OPENMP
-PCC = g++
-PCFLAGS = -fopenmp -std=c++0x -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
+PCC = icpc
+PCFLAGS = -O3 -qopenmp -DOPENMP $(INTT) $(INTE) $(CODE) $(PD) -L/usr/local/lib -lpapi -I/usr/local/include
 
 else ifdef OPENMPG
 PCC = g++
@@ -46,8 +49,11 @@ endif
 COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h vertexSubset.h encoder.C
 
 ALL= encoder BFS BC BellmanFord Components Radii PageRank PageRankDelta BFSCC BFS-Bitvector KCore MIS Triangle CF
-
+#ALL= BFS PageRank
 all: $(ALL)
+
+perf: PCFLAGS += -DPERF
+perf: all
 
 % : %.C $(COMMON)
 	$(PCC) $(PCFLAGS) -o $@ $< 
