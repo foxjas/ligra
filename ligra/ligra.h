@@ -41,6 +41,8 @@
 #include "IO.h"
 #include "parseCommandLine.h"
 #include "gettime.h"
+#include "ittnotify.h"
+
 using namespace std;
 
 //*****START FRAMEWORK*****
@@ -235,11 +237,13 @@ int parallel_main(int argc, char* argv[]) {
       for (vector<long>::const_iterator it = srcList.begin(); it != srcList.end(); it++) {
         P.setOptionValue("-r", to_string(*it));
         tDelta = 0;
+        __itt_resume();
         for(int r=0;r<rounds;r++) {
           startTime();
           Compute(G,P);
           tDelta += stopT();
         }
+        __itt_pause();
         avgTimeBySrc.push_back(tDelta/rounds);
       }
       totalTime = totalTime();
