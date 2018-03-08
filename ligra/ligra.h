@@ -123,7 +123,8 @@ vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1
     }}
   uintT outDegrees = sequence::plusReduce(degrees, m);
   if (outDegrees == 0) return vertexSubset(numVertices);
-  if (m + outDegrees > threshold) { 
+  //if (m + outDegrees > threshold) { 
+  if (true) { 
     V.toDense();
     free(degrees);
     free(frontierVertices);

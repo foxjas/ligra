@@ -32,7 +32,7 @@ PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
 PCC = icpc
-PCFLAGS = -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
+PCFLAGS = -O3 -DCILKP -D${STREAMING} $(INTT) $(INTE) $(CODE) $(PD)
 
 else ifdef OPENMP
 PCC = icpc 
