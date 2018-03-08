@@ -11,7 +11,11 @@ namespace decode_uncompressed {
       for (uintE j=0; j<d; j++) {
         uintE ngh = v->getInNeighbor(j);
 #ifndef WEIGHTED
+        #ifndef STREAMING
         if (vertexSubset[ngh] && f.update(ngh,i))
+        #else
+        if (true && f.update(ngh,i))
+        #endif
 #else
         if (vertexSubset[ngh] && f.update(ngh,i,v->getInWeight(j)))
 #endif
@@ -22,7 +26,11 @@ namespace decode_uncompressed {
       parallel_for(uintE j=0; j<d; j++) {
         uintE ngh = v->getInNeighbor(j);
 #ifndef WEIGHTED
-        if (vertexSubset[ngh] && f.updateAtomic(ngh,i))
+        #ifndef STREAMING
+        if (vertexSubset[ngh] && f.update(ngh,i))
+        #else
+        if (true && f.update(ngh,i))
+        #endif
 #else
         if (vertexSubset[ngh] && f.updateAtomic(ngh,i,v->getInWeight(j)))
 #endif
