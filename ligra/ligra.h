@@ -41,6 +41,9 @@
 #include "IO.h"
 #include "parseCommandLine.h"
 #include "gettime.h"
+
+#include "cpucounters.h"
+
 using namespace std;
 
 //*****START FRAMEWORK*****
@@ -203,6 +206,17 @@ int parallel_main(int argc, char* argv[]) {
       printf("\n");
   }
 
+   PCM *m = PCM::getInstance();
+   PCM::ErrorCode returnResult = m->program();
+   if (returnResult != PCM::Success){
+      std::cerr << "Intel's PCM couldn't start" << std::endl;
+      std::cerr << "Error code: " << returnResult << std::endl;
+      exit(1);
+   }
+   
+   SystemCounterState before_sstate; 
+   SystemCounterState after_sstate; 
+   
   if (compressed) {
     if (symmetric) {
       graph<compressedSymmetricVertex> G =
@@ -235,11 +249,14 @@ int parallel_main(int argc, char* argv[]) {
       for (vector<long>::const_iterator it = srcList.begin(); it != srcList.end(); it++) {
         P.setOptionValue("-r", to_string(*it));
         tDelta = 0;
+
+        before_sstate = getSystemCounterState();
         for(int r=0;r<rounds;r++) {
           startTime();
           Compute(G,P);
           tDelta += stopT();
         }
+        after_sstate = getSystemCounterState();
         avgTimeBySrc.push_back(tDelta/rounds);
       }
       totalTime = totalTime();
@@ -252,6 +269,12 @@ int parallel_main(int argc, char* argv[]) {
         }
         std::cout << std::endl;
       }
+
+      std::cout << "Bytes read:" << getBytesReadFromMC(before_sstate,after_sstate) << std::endl;
+      std::cout << "Bytes written:" << getBytesWrittenToMC(before_sstate,after_sstate) << std::endl;
+      //std::cout << "L2 misses:" << getL2CacheMisses(before_sstate,after_sstate) << std::endl;
+      //std::cout << "Bytes total:" << getIORequestBytesFromMC(before_sstate,after_sstate) << std::endl;
+
       G.del();
     } else {
       graph<asymmetricVertex> G =
@@ -282,5 +305,6 @@ int parallel_main(int argc, char* argv[]) {
       G.del();
     }
   }
+  //std::cout << "Instructions per clock:" << getIPC(before_sstate,after_sstate) << std::endl;
 }
 #endif
