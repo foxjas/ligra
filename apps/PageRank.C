@@ -30,13 +30,24 @@ struct PR_F {
   vertex* V;
   PR_F(double* _p_curr, double* _p_next, vertex* _V) : 
     p_curr(_p_curr), p_next(_p_next), V(_V) {}
+
   inline bool update(uintE s, uintE d){ //update function applies PageRank equation
+    #ifdef STREAMING
+    return s+d;
+    //return 1;
+    #else
     p_next[d] += p_curr[s]/V[s].getOutDegree();
     return 1;
+    #endif
   }
   inline bool updateAtomic (uintE s, uintE d) { //atomic Update
+    #ifdef STREAMING
+    //return 1;
+    return s+d;
+    #else
     writeAdd(&p_next[d],p_curr[s]/V[s].getOutDegree());
     return 1;
+    #endif
   }
   inline bool cond (intT d) { return cond_true(d); }};
 

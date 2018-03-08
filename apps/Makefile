@@ -36,7 +36,7 @@ PCFLAGS = -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
 
 else ifdef OPENMP
 PCC = icpc 
-PCFLAGS = -O3 -qopenmp -DOPENMP $(INTT) $(INTE) $(CODE) $(PD) $(PCMFLAGS) 
+PCFLAGS = -O3 -qopenmp -DOPENMP -D${STREAMING} $(INTT) $(INTE) $(CODE) $(PD) $(PCMFLAGS) 
 
 else ifdef OPENMPG
 PCC = g++
