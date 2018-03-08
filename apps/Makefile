@@ -18,9 +18,9 @@ else
 CODE = -DBYTERLE
 endif
 
-OPENMP=True # use openmp
+OPENMP= # use openmp
 CILK=
-MKLROOT=
+MKLROOT=True # use cilk
 
 #compilers
 ifdef CILK
@@ -30,11 +30,11 @@ PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
 PCC = icpc
-PCFLAGS = -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
+PCFLAGS = -O3 -DCILKP -D${STREAMING} $(INTT) $(INTE) $(CODE) $(PD) -I/opt/intel/vtune_amplifier_2018.1.0.535340/include
 
 else ifdef OPENMP
 PCC = icpc 
-PCFLAGS = -O3 -qopenmp -DOPENMP $(INTT) $(INTE) $(CODE) $(PD) -I/opt/intel/vtune_amplifier_2018.1.0.535340/include #/opt/intel/vtune_amplifier_2018.1.0.535340/lib64/libittnotify.a
+PCFLAGS = -O3 -qopenmp -DOPENMP -D${STREAMING} $(INTT) $(INTE) $(CODE) $(PD) -I/opt/intel/vtune_amplifier_2018.1.0.535340/include 
 
 else ifdef OPENMPG
 PCC = g++

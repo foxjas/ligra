@@ -111,6 +111,7 @@ vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1
     abort();
   }
   // used to generate nonzero indices to get degrees
+  
   uintT* degrees = newA(uintT, m);
   vertex* frontierVertices;
   V.toSparse();
@@ -120,8 +121,10 @@ vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1
     degrees[i] = v.getOutDegree();
     frontierVertices[i] = v;
     }}
+  
   uintT outDegrees = sequence::plusReduce(degrees, m);
   if (outDegrees == 0) return vertexSubset(numVertices);
+ 
   if (m + outDegrees > threshold) { 
     V.toDense();
     free(degrees);
@@ -181,6 +184,7 @@ template<class vertex>
 void Compute(graph<vertex>&, commandLine);
 
 int parallel_main(int argc, char* argv[]) {
+  __itt_pause();
   commandLine P(argc,argv," [-s] <inFile>");
   char* iFile = P.getArgument(0);
   bool symmetric = P.getOptionValue("-s");
@@ -246,6 +250,7 @@ int parallel_main(int argc, char* argv[]) {
         __itt_pause();
         avgTimeBySrc.push_back(tDelta/rounds);
       }
+      __itt_detach();
       totalTime = totalTime();
       avgTime = totalTime/(rounds*srcList.size());
       std::cout << "Average time: " << avgTime << std::endl;

@@ -31,12 +31,22 @@ struct PR_F {
   PR_F(double* _p_curr, double* _p_next, vertex* _V) : 
     p_curr(_p_curr), p_next(_p_next), V(_V) {}
   inline bool update(uintE s, uintE d){ //update function applies PageRank equation
+    #ifdef STREAMING
+    return s+d;
+    //return 1;
+    #else
     p_next[d] += p_curr[s]/V[s].getOutDegree();
     return 1;
+    #endif
   }
   inline bool updateAtomic (uintE s, uintE d) { //atomic Update
+    #ifdef STREAMING
+    //return 1;
+    return s+d;
+    #else
     writeAdd(&p_next[d],p_curr[s]/V[s].getOutDegree());
     return 1;
+    #endif
   }
   inline bool cond (intT d) { return cond_true(d); }};
 
@@ -68,7 +78,7 @@ struct PR_Vertex_Reset {
 
 template <class vertex>
 void Compute(graph<vertex>& GA, commandLine P) {
-  long maxIters = P.getOptionLongValue("-maxiters",100);
+  long maxIters = P.getOptionLongValue("-maxiters",20);
   const intE n = GA.n;
   const double damping = 0.85, epsilon = 0.0000001;
   
@@ -91,12 +101,19 @@ void Compute(graph<vertex>& GA, commandLine P) {
       p_curr[i] = fabs(p_curr[i]-p_next[i]);
       }}
     double L1_norm = sequence::plusReduce(p_curr,n);
-    if(L1_norm < epsilon) break;
+    //if(L1_norm < epsilon) break;
     //reset p_curr
     vertexMap(Frontier,PR_Vertex_Reset(p_curr));
     swap(p_curr,p_next);
     Frontier.del(); 
     Frontier = output;
   }
+  /*
+  #ifdef STREAMING
+  std::cout << "iters (streaming): " << iter << std::endl;
+  #else
+  std::cout << "iters: " << iter << std::endl;
+  #endif
+  */
   Frontier.del(); free(p_curr); free(p_next); 
 }
