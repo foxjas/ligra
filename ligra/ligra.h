@@ -270,9 +270,13 @@ int parallel_main(int argc, char* argv[]) {
         }
         std::cout << std::endl;
       }
-
-      std::cout << "Bytes read:" << getBytesReadFromMC(before_sstate,after_sstate) << std::endl;
+      unsigned long bytesRead = getBytesReadFromMC(before_sstate,after_sstate);
+      unsigned long bytesWritten = getBytesWrittenToMC(before_sstate,after_sstate);
+      std::cout << "Bytes read: " << getBytesReadFromMC(before_sstate,after_sstate) << std::endl;
       std::cout << "Bytes written:" << getBytesWrittenToMC(before_sstate,after_sstate) << std::endl;
+      std::cout << "Read BW (GB/s): " << (bytesRead/1E9)/avgTime << std::endl;
+      std::cout << "Write BW (GB/s): " << (bytesWritten/1E9)/avgTime << std::endl;
+      std::cout << "Total BW (GB/s): " << (bytesRead/1E9)/avgTime + (bytesWritten/1E9)/avgTime << std::endl;
       //std::cout << "L2 misses:" << getL2CacheMisses(before_sstate,after_sstate) << std::endl;
       //std::cout << "Bytes total:" << getIORequestBytesFromMC(before_sstate,after_sstate) << std::endl;
 
