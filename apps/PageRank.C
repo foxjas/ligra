@@ -30,6 +30,7 @@ struct PR_F {
   vertex* V;
   PR_F(double* _p_curr, double* _p_next, vertex* _V) : 
     p_curr(_p_curr), p_next(_p_next), V(_V) {}
+
   inline bool update(uintE s, uintE d){ //update function applies PageRank equation
     #ifdef STREAMING
     return s+d;
