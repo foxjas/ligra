@@ -18,9 +18,9 @@ else
 CODE = -DBYTERLE
 endif
 
-OPENMP=True # use openmp
+OPENMP= # use openmp
 CILK=
-MKLROOT= # use cilk
+MKLROOT=True
 
 #compilers
 ifdef CILK
