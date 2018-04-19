@@ -18,9 +18,9 @@ else
 CODE = -DBYTERLE
 endif
 
-OPENMP=True # use openmp
+OPENMP= # use openmp
 CILK=
-MKLROOT=
+MKLROOT=True
 
 PCMFLAGS = -I${HOME}/pcm -L ${HOME}/pcm/cpucounters.o ${HOME}/pcm/pci.o ${HOME}/pcm/msr.o ${HOME}/pcm/client_bw.o ${HOME}/pcm/cpucounters.o
 
@@ -32,7 +32,7 @@ PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
 PCC = icpc
-PCFLAGS = -O3 -DCILKP -D${STREAMING} $(INTT) $(INTE) $(CODE) $(PD)
+PCFLAGS = -O3 -DCILKP -D${STREAMING} $(INTT) $(INTE) $(CODE) $(PD) $(PCMFLAGS)
 
 else ifdef OPENMP
 PCC = icpc 

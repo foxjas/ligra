@@ -102,7 +102,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
       p_curr[i] = fabs(p_curr[i]-p_next[i]);
       }}
     double L1_norm = sequence::plusReduce(p_curr,n);
-    if(L1_norm < epsilon) break;
+    //if(L1_norm < epsilon) break;
     //reset p_curr
     vertexMap(Frontier,PR_Vertex_Reset(p_curr));
     swap(p_curr,p_next);
