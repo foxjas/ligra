@@ -247,20 +247,21 @@ int parallel_main(int argc, char* argv[]) {
       graph<symmetricVertex> G =
         readGraph<symmetricVertex>(iFile,compressed,symmetric,binary); //symmetric graph
       Compute(G,P);
+
+      before_sstate = getSystemCounterState();
       for (vector<long>::const_iterator it = srcList.begin(); it != srcList.end(); it++) {
         P.setOptionValue("-r", to_string(*it));
         tDelta = 0;
 
-        before_sstate = getSystemCounterState();
         for(int r=0;r<rounds;r++) {
           startTime();
           Compute(G,P);
           tDelta += stopT();
         }
-        after_sstate = getSystemCounterState();
         avgTimeBySrc.push_back(tDelta/rounds);
       }
       totalTime = totalTime();
+      after_sstate = getSystemCounterState();
       avgTime = totalTime/(rounds*srcList.size());
       std::cout << "Average time: " << avgTime << std::endl;
       if (verbose) {
